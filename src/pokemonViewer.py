@@ -58,15 +58,71 @@ def pokemon_viewer(page: ft.Page, content_container: ft.Container):
         else:
             result_text.value = "Failed to collect!"
         content_container.update()
+    # Muestra una galería con los primeros 10 pokémons (IDs 1..10)
+    def gallery_view(e):
+        """Construye una cuadrícula simple con filas de hasta 5 tarjetas cada una."""
+        result_text.value = "Loading gallery..."
+        gallery_container.controls.clear()
+        content_container.update()
 
+        items_per_row = 5
+        current_row = ft.Row(spacing=10)
+        pokemons = pokemonData.get_pokemon_list(limit=10)
+        for pokemon_name in pokemons:
+            try:
+                pokemon = pokemonData.get_pokemon_data(pokemon_name)
+            except Exception as ex:
+                pokemon = None
+                print(f"Error fetching pokemon {pokemon_name}: {ex}")
+
+            if pokemon:
+                img = ft.Image(src=pokemon.image_url, width=96, height=96) if pokemon.image_url else ft.Container(width=96, height=96)
+                name = ft.Text(pokemon.name.capitalize(), size=12)
+                card = ft.Container(
+                    content=ft.Column(
+                        [
+                        img,
+                        name
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                    padding=5,
+                    border=ft.border.all(1),
+                    width=110,
+                    height=140
+                )
+            else:
+                card = ft.Container(
+                    content=ft.Text(f"#{pokemon_name}\nNot found", size=12),
+                    width=110,
+                    height=140,
+                    alignment=ft.alignment.center
+                )
+
+            current_row.controls.append(card)
+            # si la fila alcanzó el máximo, agregarla a la columna y crear nueva fila
+            if len(current_row.controls) >= items_per_row:
+                gallery_container.controls.append(current_row)
+                current_row = ft.Row(spacing=10, wrap=True)
+
+        # agregar la última fila si tiene elementos
+        if current_row.controls:
+            gallery_container.controls.append(current_row)
+
+        result_text.value = "Gallery loaded."
+        content_container.update()
     fetch_button = ft.ElevatedButton(text="Fetch Pokemon", on_click=fetch_pokemon)
+
+    # Galería: usaremos una columna que contendrá filas (rows) de tarjetas
+    gallery_container = ft.Column()
+    show_gallery_button = ft.ElevatedButton(text="Show Gallery (first 10)", on_click=gallery_view)
 
     content_container.content = ft.Column(
         [
             pokemon_name_input,
             fetch_button,
+            show_gallery_button,
             result_text,
-            list_view
+            list_view,
+            gallery_container
         ],
         alignment=ft.MainAxisAlignment.START,
         horizontal_alignment=ft.CrossAxisAlignment.START,
