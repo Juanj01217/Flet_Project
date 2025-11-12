@@ -1,4 +1,5 @@
-import requests
+import urllib.request
+import json
 import features.pokemonEntity as pkEntity
 
 def get_pokemon_data(pokemon_name):
